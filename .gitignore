@@ -42,3 +42,4 @@ app.*.map.json
 
 *.jks
 keystore.properties
+showPage.dart
