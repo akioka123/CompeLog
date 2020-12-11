@@ -28,6 +28,8 @@ const START_LIST = {
   HIGHMIDDLE: [37],
   OPEN: [49]
 };
+
+///　級ごとの色わけリスト
 const CLASS_COLOR_MAP = {
   "二段": Colors.black,
   "初段": Colors.black,
@@ -41,6 +43,7 @@ const CLASS_COLOR_MAP = {
   "８級": Colors.pinkAccent,
 };
 
+///　級リスト
 const CLASS_STR_LIST = [
   "二段",
   "初段",
