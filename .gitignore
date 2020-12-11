@@ -42,4 +42,3 @@ app.*.map.json
 
 *.jks
 keystore.properties
-google-services.json
