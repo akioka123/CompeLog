@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+/// gitから省いている
 class ShowPage extends StatelessWidget {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   UserModel _user;
