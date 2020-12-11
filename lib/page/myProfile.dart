@@ -31,6 +31,11 @@ class _MyProfileState extends State<MyProfile> {
     super.initState();
   }
 
+  void dispose() {
+    super.dispose();
+    _db.terminate();
+  }
+
   /// 名前・性別・クラスの表示
   Widget _nameAgeGenderRow(UserModel user) {
     return Column(

@@ -23,12 +23,13 @@ interface RootLog extends Log {
   authorRef?: FirebaseFirestore.DocumentReference;
 }
 
-export const onUsersLogCreate = functions.firestore.document('/User/{userId}/Logs/{logId}').onCreate(async (snapshot, context) => {
+export const onUsersLogCreate = functions.firestore.document('/Logs/{logId}').onCreate(async (snapshot, context) => {
   await copyToRootWithUsersLogSnapshot(snapshot, context);
 });
-export const onUsersLogUpdate = functions.firestore.document('/User/{userId}/Logs/{logId}').onUpdate(async (change, context) => {
+export const onUsersLogUpdate = functions.firestore.document('/Log/{logId}').onUpdate(async (change, context) => {
   await copyToRootWithUsersLogSnapshot(change.after, context);
 });
+
 
 async function copyToRootWithUsersLogSnapshot(snapshot: FirebaseFirestore.DocumentSnapshot, context: functions.EventContext) {
   const logId = snapshot.id;

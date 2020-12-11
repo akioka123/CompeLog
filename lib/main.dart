@@ -1,13 +1,10 @@
 import 'dart:async';
 
 import 'package:CompeLog/page/myProfile.dart';
-import 'package:CompeLog/page/showPage.dart';
+import 'package:CompeLog/page/personalResult.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:provider/provider.dart';
-
-import 'model/userModel.dart';
 import 'page/allLogPage.dart';
 import 'page/loginPage.dart';
 import 'page/signinPage.dart';
@@ -68,6 +65,7 @@ class TLogApp extends StatelessWidget {
                 // "/show": (context) => ShowPage(),
                 "/profile": (context) => MyProfile(settings.arguments),
                 "/log": (context) => AllLog(settings.arguments),
+                "/clear": (context) => PersonalResult(settings.arguments),
               };
               WidgetBuilder builder = routes[settings.name];
               return MaterialPageRoute(builder: (context) => builder(context));

@@ -1,5 +1,6 @@
 import 'package:CompeLog/const.dart';
 import 'package:CompeLog/model/userModel.dart';
+import 'package:CompeLog/page/personalResult.dart';
 import 'package:CompeLog/textUtil.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -16,6 +17,8 @@ class _AllLogState extends State<AllLog> {
   FirebaseFirestore _db = FirebaseFirestore.instance;
   UserModel _user;
   int _current = 1;
+  bool isPersonal = false;
+  bool isResult = true;
   Query _query;
 
   void initState() {
@@ -29,6 +32,7 @@ class _AllLogState extends State<AllLog> {
 
   void dispose() {
     super.dispose();
+    _db.terminate();
   }
 
   /// 自分のクリアに追加　・級がいる
@@ -51,9 +55,13 @@ class _AllLogState extends State<AllLog> {
     _changeResult(id, docData["clear"]);
   }
 
+  void _showPersonalResult(List clears) {
+    Navigator.pushNamed(context, "/clear", arguments: clears);
+  }
+
   /// ログの表示内容部分
   ///
-  Card _logCards(DocumentSnapshot snapshot, String id) {
+  Widget _logCards(DocumentSnapshot snapshot, String id) {
     Map docData = snapshot.data();
 
     ///クリア・未クリア
@@ -62,61 +70,68 @@ class _AllLogState extends State<AllLog> {
     if (docData["clear"].contains(id)) {
       isClear = CLEAR;
     }
+
     if (isClear == CLEAR) {
-      return Card(
-          child: ListTile(
-        tileColor: ClearLog,
-        //導入部分　左端
-        leading: textToJap(docData["number"].toString(),
-            style: Theme.of(context).textTheme.headline2),
-        //中央上部のメイン
-        title: textToJap(
-            docData["class"] +
-                "    " +
-                docData["wall"] +
-                "    " +
-                docData["clear"].length.toString() +
-                "人",
-            style: Theme.of(context).textTheme.bodyText2),
-        //中央下部分のサブ
-        subtitle: textToJap("         " + isClear,
-            style: Theme.of(context).textTheme.subtitle2),
-        //末尾　右端　ボタンなど　チェックボタンのみ
-        trailing: IconButton(
-            iconSize: 30.0,
-            icon: Icon(
-              Icons.check,
-              color: Colors.white,
-            ),
-            onPressed: () => onCheckPressAction(snapshot.id, isClear, docData)),
-      ));
+      return GestureDetector(
+          onTap: () => _showPersonalResult(docData["clear"]),
+          child: Card(
+              child: ListTile(
+            tileColor: ClearLog,
+            //導入部分　左端
+            leading: textToJap(docData["number"].toString(),
+                style: Theme.of(context).textTheme.headline2),
+            //中央上部のメイン
+            title: textToJap(
+                docData["class"] +
+                    "    " +
+                    docData["wall"] +
+                    "    " +
+                    docData["clear"].length.toString() +
+                    "人",
+                style: Theme.of(context).textTheme.bodyText2),
+            //中央下部分のサブ
+            subtitle: textToJap("         " + isClear,
+                style: Theme.of(context).textTheme.subtitle2),
+            //末尾　右端　ボタンなど　チェックボタンのみ
+            trailing: IconButton(
+                iconSize: 30.0,
+                icon: Icon(
+                  Icons.check,
+                  color: Colors.white,
+                ),
+                onPressed: () =>
+                    onCheckPressAction(snapshot.id, isClear, docData)),
+          )));
     } else {
-      return Card(
-          child: ListTile(
-        //導入部分　左端
-        leading: textToJap(docData["number"].toString(),
-            style: Theme.of(context).textTheme.headline1),
-        //中央上部のメイン
-        title: textToJap(
-            docData["class"] +
-                "    " +
-                docData["wall"] +
-                "    " +
-                docData["clear"].length.toString() +
-                "人",
-            style: Theme.of(context).textTheme.bodyText1),
-        //中央下部分のサブ
-        subtitle: textToJap("         " + isClear,
-            style: Theme.of(context).textTheme.subtitle1),
-        //末尾　右端　ボタンなど　チェックボタンのみ
-        trailing: IconButton(
-            iconSize: 40.0,
-            icon: Icon(
-              Icons.add_circle_rounded,
-              color: CLASS_COLOR_MAP[docData["class"]],
-            ),
-            onPressed: () => onCheckPressAction(snapshot.id, isClear, docData)),
-      ));
+      return GestureDetector(
+          onTap: () => _showPersonalResult(docData["clear"]),
+          child: Card(
+              child: ListTile(
+            //導入部分　左端
+            leading: textToJap(docData["number"].toString(),
+                style: Theme.of(context).textTheme.headline1),
+            //中央上部のメイン
+            title: textToJap(
+                docData["class"] +
+                    "    " +
+                    docData["wall"] +
+                    "    " +
+                    docData["clear"].length.toString() +
+                    "人",
+                style: Theme.of(context).textTheme.bodyText1),
+            //中央下部分のサブ
+            subtitle: textToJap("         " + isClear,
+                style: Theme.of(context).textTheme.subtitle1),
+            //末尾　右端　ボタンなど　チェックボタンのみ
+            trailing: IconButton(
+                iconSize: 40.0,
+                icon: Icon(
+                  Icons.add_circle_rounded,
+                  color: CLASS_COLOR_MAP[docData["class"]],
+                ),
+                onPressed: () =>
+                    onCheckPressAction(snapshot.id, isClear, docData)),
+          )));
     }
   }
 
