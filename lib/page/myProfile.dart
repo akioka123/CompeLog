@@ -4,6 +4,7 @@ import 'package:CompeLog/const.dart';
 import 'package:CompeLog/model/userModel.dart';
 import 'package:CompeLog/textUtil.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -21,51 +22,76 @@ class MyProfile extends StatefulWidget {
 class _MyProfileState extends State<MyProfile> {
   ///結果一覧
   List<Widget> _myResultList = [];
-  FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
   UserModel _user = UserModel();
   int _current = 0;
   final _picker = ImagePicker();
   io.File _profImage;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
+  TaskSnapshot _task;
 
   void initState() {
     super.initState();
+    print("プロフィール画面");
   }
 
   void dispose() {
     super.dispose();
-    _db.terminate();
   }
 
   /// 名前・性別・クラスの表示
   Widget _nameAgeGenderRow(UserModel user) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            textToJap(user.name, style: Theme.of(context).textTheme.headline1),
-          ],
-        ),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            textToJap(user.gender,
-                style: Theme.of(context).textTheme.bodyText1),
-          ],
-        ),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            textToJap(user.className,
-                style: Theme.of(context).textTheme.headline1)
-          ],
-        ),
-      ],
-    );
+    return Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+      Padding(padding: EdgeInsets.all(20.0)),
+      Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              textToJap(user.name,
+                  style: Theme.of(context).textTheme.headline1),
+            ],
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              textToJap(user.gender,
+                  style: Theme.of(context).textTheme.bodyText1),
+            ],
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              textToJap(user.className,
+                  style: Theme.of(context).textTheme.headline1)
+            ],
+          ),
+        ],
+      ),
+      IconButton(
+          iconSize: 35.0,
+          icon: Icon(Icons.edit_sharp),
+          onPressed: () async {
+            final result =
+                await Navigator.pushNamed(context, "/edit", arguments: _user);
+            if (result != null) {
+              setState(() {
+                _user = result;
+                _db.collection("User").doc(_user.id).update({
+                  "name": _user.name,
+                  "class": _user.className,
+                  "gender": _user.gender
+                });
+              });
+            } else {
+              setState(() {});
+            }
+          })
+    ]);
   }
 
   ///結果一覧の表示
@@ -119,9 +145,24 @@ class _MyProfileState extends State<MyProfile> {
             .collection("User")
             .doc(_user.id)
             .update({"profImage": pickedFile.path});
+        uploadImage(pickedFile);
         _profImage = io.File(pickedFile.path);
       }
     });
+  }
+
+  /// firebase storageにプロフ画像アップ
+  void uploadImage(PickedFile file) {
+    try {
+      Reference ref =
+          _storage.ref().child("ProfImage").child("/" + _user.id + "_prof.png");
+      final metadata = SettableMetadata(
+          contentType: 'image/png',
+          customMetadata: {'picked-file-path': file.path});
+      ref.putFile(io.File(file.path), metadata);
+    } on FirebaseException catch (e) {
+      print(e);
+    }
   }
 
   ///画面表示

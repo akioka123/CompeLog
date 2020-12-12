@@ -23,6 +23,7 @@ class _AllLogState extends State<AllLog> {
 
   void initState() {
     super.initState();
+    print("ログ画面");
     _user = widget.user;
     List result;
     String className = _user.className;
@@ -32,7 +33,6 @@ class _AllLogState extends State<AllLog> {
 
   void dispose() {
     super.dispose();
-    _db.terminate();
   }
 
   /// 自分のクリアに追加　・級がいる

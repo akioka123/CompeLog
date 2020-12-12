@@ -35,7 +35,7 @@ class _SigninPageState extends State<SigninPage> {
   String _chosenGender = "男";
 
   ///　認証確認
-  bool _success = true;
+  bool _success = false;
 
   ///　パスワードの隠ぺい切り替え処理
   bool _isObscure = true;
@@ -68,17 +68,17 @@ class _SigninPageState extends State<SigninPage> {
         "createAt": Timestamp.now(),
         "updateAt": Timestamp.now(),
       });
+      _success = true;
       if (user != null) {
         setState(() {
           if (_success) {
             _userId = user.uid;
           }
         });
-      } else {
-        _success = false;
       }
     } catch (e) {
       print(e);
+      Fluttertoast.showToast(msg: "新規登録に失敗しました。");
     }
   }
 

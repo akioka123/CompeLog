@@ -18,7 +18,6 @@ class _PersonalResultState extends State<PersonalResult> {
 
   void dispose() {
     super.dispose();
-    _db.terminate();
   }
 
   Future<List> _getUsers() async {

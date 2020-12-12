@@ -1,5 +1,6 @@
 import 'package:CompeLog/const.dart';
 import 'package:CompeLog/model/userModel.dart';
+import 'package:CompeLog/textUtil.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -19,6 +20,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  String _errorMsg = "";
   String userId;
   UserModel _user = UserModel();
   bool _isLogin = false;
@@ -33,6 +35,7 @@ class _LoginPageState extends State<LoginPage> {
 
       if (result.user != null) {
         setState(() {
+          _isLogin = true;
           _user.id = result.user.uid;
           _db.collection("User").doc(_user.id).get().then((userProfile) {
             Map user = userProfile.data();
@@ -41,18 +44,19 @@ class _LoginPageState extends State<LoginPage> {
             _user.className = user["class"];
             _user.result = user["result"];
           });
-          _db.terminate();
           Navigator.pushReplacementNamed(context, '/profile',
               arguments: _user.id);
         });
       } else {
         setState(() {
-          _isLogin = true;
+          _errorMsg = "メールアドレスかパスワードが間違っています。";
         });
-        Fluttertoast.showToast(msg: "メールアドレスかパスワードが間違っています。");
       }
     } catch (e) {
       print(e);
+      setState(() {
+        _errorMsg = "メールアドレスかパスワードが間違っています。";
+      });
     }
   }
 
@@ -144,14 +148,13 @@ class _LoginPageState extends State<LoginPage> {
                     children: <Widget>[
                       _fieldBox(_buildEmailInputField(), 80.0, 250.0),
                       _fieldBox(_buildPasswordInputField(), 80.0, 250.0),
+                      textToJap(_errorMsg,
+                          style: Theme.of(context).textTheme.subtitle1),
                       RaisedButton(
                         color: Colors.white,
                         child: Text('ログイン'),
                         onPressed: () {
                           if (_formKey.currentState.validate()) {
-                            setState(() {
-                              _isLogin = true;
-                            });
                             _login(context);
                           }
                         },
