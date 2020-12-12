@@ -1,34 +1,29 @@
 import 'package:CompeLog/const.dart';
+import 'package:CompeLog/model/fireStoreService.dart';
 import 'package:CompeLog/model/userModel.dart';
 import 'package:CompeLog/page/personalResult.dart';
 import 'package:CompeLog/textUtil.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class AllLog extends StatefulWidget {
-  final UserModel user;
-  AllLog(this.user);
   @override
   _AllLogState createState() => _AllLogState();
 }
 
 class _AllLogState extends State<AllLog> {
-  FirebaseFirestore _db = FirebaseFirestore.instance;
+  FireStoreService _fireStoreService;
   UserModel _user;
   int _current = 1;
   bool isPersonal = false;
   bool isResult = true;
+  bool _isfirst = true;
   Query _query;
 
   void initState() {
     super.initState();
-    print("ログ画面");
-    _user = widget.user;
-    List result;
-    String className = _user.className;
-    result = START_LIST[className];
-    _query = _db.collection("Log").orderBy("number").startAt(result).limit(6);
   }
 
   void dispose() {
@@ -39,8 +34,8 @@ class _AllLogState extends State<AllLog> {
   /// clearにidを追加、または、削除
   /// クリア時と未クリア時の２パターン必要
   void _changeResult(String id, List clearList) {
-    _db.collection("User").doc(_user.id).update({"result": _user.result});
-    _db.collection("Log").doc(id).update({"clear": clearList});
+    _fireStoreService.userPath.update({"result": _user.result});
+    _fireStoreService.logColRef.doc(id).update({"clear": clearList});
     setState(() {});
   }
 
@@ -154,6 +149,12 @@ class _AllLogState extends State<AllLog> {
   Widget build(BuildContext context) {
     List nextPageDoc;
     List beforePageDoc;
+    _fireStoreService = Provider.of<FireStoreService>(context);
+    _user = _fireStoreService.user;
+    print("ログ画面");
+    List result;
+    String className = _user.className;
+    result = START_LIST[className];
 
     return Scaffold(
       appBar: AppBar(title: textToJap("コンぺ　記録")),
@@ -162,21 +163,21 @@ class _AllLogState extends State<AllLog> {
             if (details.velocity.pixelsPerSecond.dx < -10) {
               if (nextPageDoc[0] < 60) {
                 setState(() {
-                  _query = _db
-                      .collection("Log")
+                  _query = _fireStoreService.logColRef
                       .orderBy("number")
                       .startAfter(nextPageDoc)
                       .limit(6);
+                  _isfirst = false;
                 });
               }
             } else if (details.velocity.pixelsPerSecond.dx > 10) {
               if (beforePageDoc[0] >= 0) {
                 setState(() {
-                  _query = _db
-                      .collection("Log")
+                  _query = _fireStoreService.logColRef
                       .orderBy("number")
                       .startAfter(beforePageDoc)
                       .limit(6);
+                  _isfirst = false;
                 });
               }
             }
@@ -184,7 +185,13 @@ class _AllLogState extends State<AllLog> {
           child: Padding(
             padding: EdgeInsets.only(top: 10.0),
             child: FutureBuilder<QuerySnapshot>(
-              future: _query.get(),
+              future: _isfirst
+                  ? _fireStoreService.logColRef
+                      .orderBy("number")
+                      .startAt(result)
+                      .limit(6)
+                      .get()
+                  : _query.get(),
               builder: (BuildContext context,
                   AsyncSnapshot<QuerySnapshot> snapshot) {
                 debugPrint("スナップショット取得　" + snapshot.connectionState.toString());

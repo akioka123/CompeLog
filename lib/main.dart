@@ -1,10 +1,13 @@
 import 'dart:async';
 
+import 'package:CompeLog/model/fireStoreService.dart';
+import 'package:CompeLog/page/editProfile.dart';
 import 'package:CompeLog/page/myProfile.dart';
 import 'package:CompeLog/page/personalResult.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:provider/provider.dart';
 import 'page/allLogPage.dart';
 import 'page/loginPage.dart';
 import 'page/signinPage.dart';
@@ -13,7 +16,10 @@ import 'const.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(TLogApp());
+
+  runApp(
+    ChangeNotifierProvider(create: (_) => FireStoreService(), child: TLogApp()),
+  );
 }
 
 class TLogApp extends StatelessWidget {
@@ -63,9 +69,10 @@ class TLogApp extends StatelessWidget {
                       title: titleText,
                     ),
                 // "/show": (context) => ShowPage(),
-                "/profile": (context) => MyProfile(settings.arguments),
-                "/log": (context) => AllLog(settings.arguments),
+                "/profile": (context) => MyProfile(),
+                "/log": (context) => AllLog(),
                 "/clear": (context) => PersonalResult(settings.arguments),
+                "/edit": (context) => EditProfile(settings.arguments),
               };
               WidgetBuilder builder = routes[settings.name];
               return MaterialPageRoute(builder: (context) => builder(context));
@@ -102,13 +109,25 @@ class TLogApp extends StatelessWidget {
       );
     } else {
       return ThemeData.dark().copyWith(
-          textTheme: TextTheme(bodyText1: TextStyle(fontSize: 20.0)),
-          inputDecorationTheme: InputDecorationTheme(
-            fillColor: Colors.white,
-            contentPadding: EdgeInsets.only(left: 5.0),
-            border: OutlineInputBorder(),
-          ),
-          buttonTheme: ButtonThemeData(textTheme: ButtonTextTheme.primary));
+        primaryColor: Color(0xff7586c9),
+        textTheme: TextTheme(
+            headline1: TextStyle(
+                fontSize: 30.0,
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+                height: 1.0),
+            headline2: TextStyle(
+                fontSize: 30.0,
+                color: Colors.white,
+                fontWeight: FontWeight.bold),
+            bodyText1:
+                TextStyle(fontSize: 25.0, color: Colors.black, height: 1.2),
+            bodyText2: TextStyle(fontSize: 25.0, color: Colors.white),
+            subtitle1: TextStyle(fontSize: 15.0, color: Colors.black),
+            subtitle2: TextStyle(fontSize: 15.0, color: Colors.white)),
+        buttonTheme: ButtonThemeData(
+            textTheme: ButtonTextTheme.primary, buttonColor: ButtonBackColor),
+      );
     }
   }
 }

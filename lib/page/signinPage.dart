@@ -1,4 +1,5 @@
 import 'package:CompeLog/const.dart';
+import 'package:CompeLog/model/fireStoreService.dart';
 import 'package:CompeLog/model/userModel.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -26,8 +27,6 @@ class _SigninPageState extends State<SigninPage> {
   ///ログインユーザー
   UserModel _user = UserModel();
 
-  FirebaseFirestore _db = FirebaseFirestore.instance;
-
   ///クラス選択　初期値
   String _chosenClass = "ミドル";
 
@@ -43,6 +42,8 @@ class _SigninPageState extends State<SigninPage> {
   ///新規登録処理
   void _register(BuildContext context) async {
     try {
+      final fireStoreService = Provider.of<FireStoreService>(context);
+
       ///FireAuth新規登録
       final User user = (await _auth.createUserWithEmailAndPassword(
         email: _emailController.text,
@@ -54,13 +55,14 @@ class _SigninPageState extends State<SigninPage> {
       await user.updateProfile(displayName: _nameController.text);
 
       ///ユーザー情報　アプリ内で引数として使いまわす
+      fireStoreService.uid = user.uid;
       _user.id = user.uid;
       _user.name = _nameController.text;
       _user.gender = _chosenGender;
       _user.className = _chosenClass;
       _user.result = NEW_RESULT;
 
-      _db.collection("User").doc(user.uid).set({
+      fireStoreService.userPath.set({
         "name": _nameController.text,
         "gender": _chosenGender,
         "class": _chosenClass,
@@ -68,6 +70,9 @@ class _SigninPageState extends State<SigninPage> {
         "createAt": Timestamp.now(),
         "updateAt": Timestamp.now(),
       });
+
+      fireStoreService.user = _user;
+
       _success = true;
       if (user != null) {
         setState(() {
@@ -248,7 +253,6 @@ class _SigninPageState extends State<SigninPage> {
                 onPressed: () {
                   if (_formKey.currentState.validate()) {
                     _register(context);
-                    _db.terminate();
                     Navigator.pushReplacementNamed(context, '/profile',
                         arguments: _user);
                   }

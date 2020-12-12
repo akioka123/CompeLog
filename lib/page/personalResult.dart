@@ -1,8 +1,10 @@
+import 'package:CompeLog/model/fireStoreService.dart';
 import 'package:CompeLog/model/userModel.dart';
 import 'package:CompeLog/textUtil.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
+import 'package:provider/provider.dart';
 
 class PersonalResult extends StatefulWidget {
   final List clears;
@@ -14,7 +16,7 @@ class PersonalResult extends StatefulWidget {
 
 class _PersonalResultState extends State<PersonalResult> {
   int _nowIndex = 0;
-  FirebaseFirestore _db = FirebaseFirestore.instance;
+  FireStoreService _fireStoreService;
 
   void dispose() {
     super.dispose();
@@ -29,7 +31,8 @@ class _PersonalResultState extends State<PersonalResult> {
         return _users;
       }
       if (widget.clears[i].isNotEmpty) {
-        _users.add(await _db.collection("User").doc(widget.clears[i]).get());
+        _users.add(
+            await _fireStoreService.userColRef.doc(widget.clears[i]).get());
       }
     }
     return _users;
@@ -62,6 +65,7 @@ class _PersonalResultState extends State<PersonalResult> {
 
   @override
   Widget build(BuildContext context) {
+    _fireStoreService = Provider.of<FireStoreService>(context);
     return Scaffold(
         appBar: AppBar(
           title: textToJap("クリアメンバー"),

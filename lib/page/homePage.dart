@@ -1,4 +1,5 @@
 import 'package:CompeLog/devFunc/createLog.dart';
+import 'package:CompeLog/model/fireStoreService.dart';
 import 'package:CompeLog/model/userModel.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -10,11 +11,12 @@ import 'package:provider/provider.dart';
 User _firebaseUser;
 UserModel _user = UserModel();
 final FirebaseAuth _auth = FirebaseAuth.instance;
-final FirebaseFirestore _db = FirebaseFirestore.instance;
 bool _isOnce = true;
 
 void _getUser(BuildContext context) async {
   _firebaseUser = _auth.currentUser;
+  final fireStoreService = Provider.of<FireStoreService>(context);
+  fireStoreService.uid = _firebaseUser.uid;
 
   if (_firebaseUser == null) {
     SchedulerBinding.instance.addPostFrameCallback((_) {
@@ -23,8 +25,7 @@ void _getUser(BuildContext context) async {
       Navigator.pushReplacementNamed(context, "/signin");
     });
   } else {
-    DocumentSnapshot userDoc =
-        await _db.collection("User").doc(_firebaseUser.uid).get();
+    DocumentSnapshot userDoc = await fireStoreService.userPath.get();
     SchedulerBinding.instance.addPostFrameCallback((_) {
       debugPrint("ログイン済：自分のログ画面へ");
       Fluttertoast.showToast(msg: _firebaseUser.displayName + "でログインしました。");
@@ -34,6 +35,7 @@ void _getUser(BuildContext context) async {
       user.gender = userDoc["gender"];
       user.className = userDoc["class"];
       user.result = userDoc["result"];
+      fireStoreService.user = user;
       Navigator.pushReplacementNamed(context, "/profile",
           arguments: _firebaseUser.uid);
     });

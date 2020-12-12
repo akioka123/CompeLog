@@ -1,6 +1,7 @@
 import 'dart:io' as io;
 
 import 'package:CompeLog/const.dart';
+import 'package:CompeLog/model/fireStoreService.dart';
 import 'package:CompeLog/model/userModel.dart';
 import 'package:CompeLog/textUtil.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -13,8 +14,6 @@ import 'package:provider/provider.dart';
 ///ユーザー情報表示
 ///他者からも閲覧可能
 class MyProfile extends StatefulWidget {
-  final String authId;
-  MyProfile(this.authId);
   @override
   _MyProfileState createState() => _MyProfileState();
 }
@@ -22,7 +21,7 @@ class MyProfile extends StatefulWidget {
 class _MyProfileState extends State<MyProfile> {
   ///結果一覧
   List<Widget> _myResultList = [];
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  FireStoreService _fireStoreService;
   UserModel _user = UserModel();
   int _current = 0;
   final _picker = ImagePicker();
@@ -81,7 +80,8 @@ class _MyProfileState extends State<MyProfile> {
             if (result != null) {
               setState(() {
                 _user = result;
-                _db.collection("User").doc(_user.id).update({
+                _fireStoreService.user = _user;
+                _fireStoreService.userPath.update({
                   "name": _user.name,
                   "class": _user.className,
                   "gender": _user.gender
@@ -141,10 +141,8 @@ class _MyProfileState extends State<MyProfile> {
     final pickedFile = await _picker.getImage(source: ImageSource.gallery);
     setState(() {
       if (pickedFile != null) {
-        _db
-            .collection("User")
-            .doc(_user.id)
-            .update({"profImage": pickedFile.path});
+        _fireStoreService.user.profImage = pickedFile.path;
+        _fireStoreService.userPath.update({"profImage": pickedFile.path});
         uploadImage(pickedFile);
         _profImage = io.File(pickedFile.path);
       }
@@ -168,12 +166,12 @@ class _MyProfileState extends State<MyProfile> {
   ///画面表示
   @override
   Widget build(BuildContext context) {
-    String id = ModalRoute.of(context).settings.arguments;
-    id = widget.authId;
+    _fireStoreService = Provider.of<FireStoreService>(context);
+    String id = _fireStoreService.uid;
     return Scaffold(
       appBar: AppBar(title: textToJap("プロフィール")),
       body: FutureBuilder(
-        future: _db.collection("User").doc(id).get(),
+        future: _fireStoreService.userPath.get(),
         builder:
             (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
           if (snapshot.hasError) {

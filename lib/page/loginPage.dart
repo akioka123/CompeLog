@@ -1,10 +1,12 @@
 import 'package:CompeLog/const.dart';
+import 'package:CompeLog/model/fireStoreService.dart';
 import 'package:CompeLog/model/userModel.dart';
 import 'package:CompeLog/textUtil.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
 
 class LoginPage extends StatefulWidget {
   final String title;
@@ -16,7 +18,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  FireStoreService _fireStoreService;
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
@@ -37,13 +39,15 @@ class _LoginPageState extends State<LoginPage> {
         setState(() {
           _isLogin = true;
           _user.id = result.user.uid;
-          _db.collection("User").doc(_user.id).get().then((userProfile) {
+          _fireStoreService.uid = result.user.uid;
+          _fireStoreService.userPath.get().then((userProfile) {
             Map user = userProfile.data();
             _user.name = user["name"];
             _user.gender = user["gender"];
             _user.className = user["class"];
             _user.result = user["result"];
           });
+
           Navigator.pushReplacementNamed(context, '/profile',
               arguments: _user.id);
         });
@@ -134,6 +138,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    _fireStoreService = Provider.of<FireStoreService>(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
