@@ -20,6 +20,7 @@ class _SigninPageState extends State<SigninPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
+  FireStoreService fireStoreService;
 
   ///ID
   String _userId;
@@ -42,8 +43,6 @@ class _SigninPageState extends State<SigninPage> {
   ///新規登録処理
   void _register(BuildContext context) async {
     try {
-      final fireStoreService = Provider.of<FireStoreService>(context);
-
       ///FireAuth新規登録
       final User user = (await _auth.createUserWithEmailAndPassword(
         email: _emailController.text,
@@ -54,6 +53,8 @@ class _SigninPageState extends State<SigninPage> {
       ///FireAuth情報追加　更新形式
       await user.updateProfile(displayName: _nameController.text);
 
+      final WriteBatch batch = fireStoreService.db.batch();
+
       ///ユーザー情報　アプリ内で引数として使いまわす
       fireStoreService.uid = user.uid;
       _user.id = user.uid;
@@ -62,7 +63,7 @@ class _SigninPageState extends State<SigninPage> {
       _user.className = _chosenClass;
       _user.result = NEW_RESULT;
 
-      fireStoreService.userPath.set({
+      batch.set(fireStoreService.userPath, {
         "name": _nameController.text,
         "gender": _chosenGender,
         "class": _chosenClass,
@@ -71,16 +72,11 @@ class _SigninPageState extends State<SigninPage> {
         "updateAt": Timestamp.now(),
       });
 
-      fireStoreService.user = _user;
-
-      _success = true;
       if (user != null) {
-        setState(() {
-          if (_success) {
-            _userId = user.uid;
-          }
-        });
+        fireStoreService.user = _user;
       }
+      await batch.commit();
+      Navigator.pushReplacementNamed(context, '/profile');
     } catch (e) {
       print(e);
       Fluttertoast.showToast(msg: "新規登録に失敗しました。");
@@ -220,6 +216,7 @@ class _SigninPageState extends State<SigninPage> {
   ///新規登録画面　画面表示
   @override
   Widget build(BuildContext context) {
+    fireStoreService = Provider.of<FireStoreService>(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -253,8 +250,6 @@ class _SigninPageState extends State<SigninPage> {
                 onPressed: () {
                   if (_formKey.currentState.validate()) {
                     _register(context);
-                    Navigator.pushReplacementNamed(context, '/profile',
-                        arguments: _user);
                   }
                 },
               ),

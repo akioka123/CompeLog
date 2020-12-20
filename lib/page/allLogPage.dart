@@ -1,10 +1,8 @@
 import 'package:CompeLog/const.dart';
 import 'package:CompeLog/model/fireStoreService.dart';
 import 'package:CompeLog/model/userModel.dart';
-import 'package:CompeLog/page/personalResult.dart';
 import 'package:CompeLog/textUtil.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -33,21 +31,27 @@ class _AllLogState extends State<AllLog> {
   /// 自分のクリアに追加　・級がいる
   /// clearにidを追加、または、削除
   /// クリア時と未クリア時の２パターン必要
-  void _changeResult(String id, List clearList) {
-    _fireStoreService.userPath.update({"result": _user.result});
-    _fireStoreService.logColRef.doc(id).update({"clear": clearList});
-    setState(() {});
-  }
-
   void onCheckPressAction(String id, String isClear, Map docData) {
-    if (isClear == NOT_CLEAR) {
-      _user.result[docData["class"]] += 1;
-      docData["clear"].add(_user.id);
-    } else {
-      _user.result[docData["class"]] -= 1;
-      docData["clear"].remove(_user.id);
-    }
-    _changeResult(id, docData["clear"]);
+    _fireStoreService.db.runTransaction((transaction) async {
+      DocumentSnapshot currentDoc =
+          await transaction.get(_fireStoreService.logColRef.doc(id));
+      List clearList = currentDoc.data()["clear"];
+      Map reslutMap = _user.result;
+
+      if (isClear == NOT_CLEAR) {
+        reslutMap[docData["class"]] += 1;
+        clearList.add(_fireStoreService.uid);
+      } else {
+        reslutMap[docData["class"]] -= 1;
+        clearList.remove(_fireStoreService.uid);
+      }
+
+      transaction
+          .update(_fireStoreService.logColRef.doc(id), {"clear": clearList});
+      transaction.update(_fireStoreService.userPath, {"result": reslutMap});
+    }).then((value) {
+      setState(() {});
+    });
   }
 
   void _showPersonalResult(List clears) {

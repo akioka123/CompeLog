@@ -8,15 +8,15 @@ class FireStoreService with ChangeNotifier {
   String logId;
   UserModel user;
 
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseFirestore db = FirebaseFirestore.instance;
 
   FireStoreService();
 
-  CollectionReference get userColRef => _db.collection("User");
+  CollectionReference get userColRef => db.collection("User");
 
-  DocumentReference get userPath => _db.collection("User").doc(uid);
+  DocumentReference get userPath => db.collection("User").doc(uid);
 
-  CollectionReference get logColRef => _db.collection("Log");
+  CollectionReference get logColRef => db.collection("Log");
 
-  DocumentReference get logPath => _db.collection("Log").doc(logId);
+  DocumentReference get logPath => db.collection("Log").doc(logId);
 }
