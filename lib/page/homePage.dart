@@ -16,7 +16,6 @@ bool _isOnce = true;
 void _getUser(BuildContext context) async {
   _firebaseUser = _auth.currentUser;
   final fireStoreService = Provider.of<FireStoreService>(context);
-  fireStoreService.uid = _firebaseUser.uid;
 
   if (_firebaseUser == null) {
     SchedulerBinding.instance.addPostFrameCallback((_) {
@@ -25,6 +24,7 @@ void _getUser(BuildContext context) async {
       Navigator.pushReplacementNamed(context, "/signin");
     });
   } else {
+    fireStoreService.uid = _firebaseUser.uid;
     DocumentSnapshot userDoc = await fireStoreService.userPath.get();
     SchedulerBinding.instance.addPostFrameCallback((_) {
       debugPrint("ログイン済：自分のログ画面へ");
